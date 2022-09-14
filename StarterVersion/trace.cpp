@@ -21,45 +21,68 @@ double det(const SlVector3 &a, const SlVector3 &b, const SlVector3 &c) {
 inline double sqr(double x) {return x*x;} 
 
 bool Triangle::intersect(const Ray &r, double t0, double t1, HitRecord &hr) const {
+        SlVector3 ba = a-b;
+    SlVector3 ca = a-c;
+    SlVector3 ea = a-r.e;
+    double detA = det(ba, ca, r.d);
+    double t = det(ba, ca, ea)/detA;
+    if (t < t0 || t > t1) return false;
+    double beta = det(ea, ca, r.d)/detA;
+    if (beta < 0 || beta > 1) return false;
+    double gamma = det(ba, ea, r.d)/detA;
+    if (gamma < 0.0 || gamma > 1.0-beta) return false;
+    hr.t = t;
+    hr.p = r.e + t * r.d;
+    hr.n = cross(ba,ca);
+    normalize(hr.n);
+    hr.alpha = 1.0 - beta - gamma;
+    hr.beta = beta;
+    hr.gamma = gamma;
+    return true;
 
     // Step 1 Ray-triangle test
 
     //Vertexs of traingle
-    SlVector3 v0=a;
-    SlVector3 v1=b;
-    SlVector3 v2=c; 
-    SlVector3 dir=r.d; //direction of light source
-    SlVector3 orig=r.e;  //origin of light source
+    // SlVector3 v0=a;
+    // SlVector3 v1=b;
+    // SlVector3 v2=c; 
+    // SlVector3 dir=r.d; //direction of light source
+    // SlVector3 orig=r.e;  //origin of light source
 
-    SlVector3 E1=v1-v0;
-    SlVector3 E2=v2-v0;
-    SlVector3 P = cross(dir,E2);
-    float det=dot(E1,P);
-    SlVector3 T;
-    if(det>0)
-    {
-        T=orig-v0;
-    }
-    else if(det==0)
-    {
-        return false;   //denomitor can not be zero
-    }
-    else
-    {
-        T=v0-orig;
-        det=-det;
-    }
-    float invDet=1/det;
-    float u=dot(T,P)*invDet;
-    if(u < 0|| u>1)return false;
-    SlVector3 Q=cross(T,E1);
-    float v=dot(dir,Q)*invDet;
-    if(v < 0|| (v+u)>1)return false;  //alpha beta gamma sum is 1, over 1 therefore no intersect
+    // SlVector3 E1=v1-v0;
+    // SlVector3 E2=v2-v0;
+    // SlVector3 P = cross(dir,E2);
+    // float det=dot(E1,P);
+    // SlVector3 T;
+    // if(det>0)
+    // {
+    //     T=orig-v0;
+    // }
+    // else if(det==0)
+    // {
+    //     return false;   //denomitor can not be zero
+    // }
+    // else
+    // {
+    //     T=v0-orig;
+    //     det=-det;
+    // }
+    // float invDet=1/det;
+    // float u=dot(T,P)*invDet;
+    // if(u < 0|| u>1)return false;
+    // SlVector3 Q=cross(T,E1);
+    // float v=dot(dir,Q)*invDet;
+    // if(v < 0|| (v+u)>1)return false;  //alpha beta gamma sum is 1, over 1 therefore no intersect
 
-    hr.t=dot(E2,Q);
+    // float t=dot(E2,Q);
+    // hr.t=t;
+    // hr.p=r.e+t*r.d;
+    // hr.alpha=1.0-u-v;
+    // hr.beta=u;
+    // hr.gamma=v;
 
 
-    return true;
+    // return true;
 }
 
 bool TrianglePatch::intersect(const Ray &r, double t0, double t1, HitRecord &hr) const {
@@ -75,35 +98,53 @@ bool TrianglePatch::intersect(const Ray &r, double t0, double t1, HitRecord &hr)
 bool Sphere::intersect(const Ray &r, double t0, double t1, HitRecord &hr) const {
 
     // Step 1 Sphere-triangle test
-    double a=sqrMag(r.d);
-    double b=2*dot(r.d, r.e-c);
-    double c = sqrMag(r.e-c)-sqr(rad);
+    // double a=sqrMag(r.d);
+    // double b=2*dot(r.d, r.e-c);
+    // double c = sqrMag(r.e-c)-sqr(rad);
 
-    double delta = sqr(b) - (4*a*c);    
+    // double delta = sqr(b) - (4*a*c);    
 
-    double root1=(-b + sqrt(delta))/(2*a);
-    double root2=(-b - sqrt(delta))/(2*a);
-    if(delta<0)
-    {
-        return false;
-    }
-    double t=root1;
-    if(delta > 0) 
-    {
-        if (root1<root2)
-        {
-            t=root1;
-        }
-        else
-        {
-            t=root2;
-        }
-    }
-    if(t<t0 || t>t1) return false;
+    // double root1=(-b + sqrt(delta))/(2*a);
+    // double root2=(-b - sqrt(delta))/(2*a);
+    // if(delta<0)
+    // {
+    //     return false;
+    // }
+    // double t=root1;
+    // if(delta > 0) 
+    // {
+    //     if (root1<root2)
+    //     {
+    //         t=root1;
+    //     }
+    //     else
+    //     {
+    //         t=root2;
+    //     }
+    // }
+    // if(t<t0 || t>t1) return false;
 
-    hr.t=t;
-    hr.p=r.e+t*r.d;
-    hr.n=(hr.p-c)/rad;
+    // hr.t=t;
+    // hr.p=r.e+t*r.d;
+    // hr.n=(hr.p-c)/rad;
+    // hr.v=-r.d;
+    // return true;
+    double ddotemc = dot(r.d, r.e-c);
+    double d2 = sqrMag(r.d);
+
+    double disc = sqr(ddotemc) - d2 * (sqrMag(r.e-c) - rad*rad);
+
+    if (disc < 0) return false;
+    double root1 = (-ddotemc + sqrt(disc)) / d2;
+    double root2 = (-ddotemc - sqrt(disc)) / d2;
+
+    double t = root1;
+    if (root1 < 0 || (root2 > 0 && root2 < root1)) t = root2;
+    if (t < t0 || t > t1) return false;
+  
+    hr.t = t;
+    hr.p = r.e + t * r.d;
+    hr.n = (hr.p - c) / rad;
     return true;
 }
 
@@ -251,25 +292,102 @@ Tracer::~Tracer() {
 
 SlVector3 Tracer::shade(const HitRecord &hr) const {
     if (color) return hr.f.color;
-
+    std::cout<<"shade running"<<std::endl;
     SlVector3 color(0.0);
     HitRecord dummy;
 
     for (unsigned int i=0; i<lights.size(); i++) {
+        std::cout<<"checking for shadows"<<std::endl;
         const Light &light = lights[i];
         bool shadow = false;
 
         // Step 3 Check for shadows here
-        if (hr.p=
-        if (!shadow) {
+        SlVector3 surfaceToLight =hr.p-light.p;
+        Ray surfaceToLightRay = Ray(hr.p, normalize(surfaceToLight));
+        bool hit=false;
+        HitRecord newHr;
+        for (int j = 0; j < surfaces.size(); j++)
+        {
+            hit=surfaces[j].first->intersect(surfaceToLightRay, 0.01, 10000000, newHr);
+    if(hit)
+    {
+        shadow=true;
+    }
+        }
+std::cout<<"shadow finished, doing phong"<<std::endl;
+        double specularcos=0;
+        if (!shadow) 
+        {
             
             // Step 2 do shading here
-            
+
+            //diffuse
+            SlVector3 position =hr.p;
+            SlVector3 LightPos=light.p;
+            SlVector3 normal = hr.n;
+            normalize(normal);
+            SlVector3 Light=LightPos-position;
+            normalize(Light);
+            double cos=dot(Light,normal);
+            if (cos<0)
+                {
+                    cos=0;
+                }
+            double diffuse=hr.f.kd*cos;
+
+            //specular
+            SlVector3 viewer=hr.v;
+            SlVector3 v=viewer;
+            normalize(v);
+            //r=2n(n.v)-v
+            SlVector3 r=2*normal*dot(normal,(Light))-(Light);
+            normalize(r);
+            normalize(v);
+            specularcos=dot(r,v);
+            if (specularcos<0)
+            {
+                    specularcos=0;
+            }
+            double specular=hr.f.ks*pow(specularcos,hr.f.shine);
+            color+=(diffuse+specular)*light.c*hr.f.color;
+
+std::cout<<"phong finished"<<std::endl;
+
         }
     }
 
 
     // Step 4 Add code for computing reflection color here
+    SlVector3 rd;
+    SlVector3 normal = hr.n;
+    SlVector3 viewer=hr.v;
+    normalize(normal);
+    normalize(viewer);
+
+    SlVector3 reflection=2*normal*dot(normal,(viewer))-(viewer);
+    Ray new_ray=Ray(hr.p,reflection);
+    HitRecord newHr;
+    newHr.raydepth=hr.raydepth+1;
+    bool hit;
+    bool reflect=false;
+    if(newHr.raydepth>5)return color;
+    float t1=1000000;
+    for (unsigned int k=0; k<surfaces.size(); k++) {
+        const std::pair<Surface *, Fill> &s  = surfaces[k];
+        if (s.first->intersect(new_ray, 0.01, t1, newHr)) {
+            t1 = newHr.t;
+            newHr.f = s.second;
+            newHr.v = new_ray.e - newHr.p;
+            normalize(newHr.v);
+            normalize(newHr.n);
+            reflect=true;
+        }
+    }
+    if (reflect==true)
+    {
+        SlVector3 bounce_color=shade(newHr);
+        color+=bounce_color *hr.f.ks;
+    }
 
     // Step 5 Add code for computing refraction color here
 
@@ -277,23 +395,43 @@ SlVector3 Tracer::shade(const HitRecord &hr) const {
 }
 
 SlVector3 Tracer::trace(const Ray &r, double t0, double t1) const {
-    HitRecord hr;
+        HitRecord hr;
     SlVector3 color(bcolor);
   
     bool hit = false;
-
-    // Step 1 See what a ray hits  
-    for(int i=0; i<surfaces.size();i++)
-    {
-            hit=surfaces[i].first->intersect(r, t0, t1, hr);
-            if(hit)
-            {
-                hr.f=surfaces[i].second;
-            }
+    for (unsigned int k=0; k<surfaces.size(); k++) {
+        const std::pair<Surface *, Fill> &s  = surfaces[k];
+        if (s.first->intersect(r, t0, t1, hr)) {
+            t1 = hr.t;
+            hr.f = s.second;
+            hr.raydepth = r.depth;
+            hr.v = r.e - hr.p;
+            normalize(hr.v);
+            normalize(hr.n);
+            hit = true;
+        }
     }
 
     if (hit) color = shade(hr);
     return color;
+    // HitRecord hr;
+    // SlVector3 color(bcolor);
+  
+    // bool hit = false;
+
+    // // Step 1 See what a ray hits  
+    // for(int i=0; i<surfaces.size();i++)
+    // {
+    //         hit=surfaces[i].first->intersect(r, t0, t1, hr);
+    //         if(hit)
+    //         {
+    //             hr.f=surfaces[i].second;
+    //         }
+    // }
+
+    // // if (hit) color = shade(hr);
+    // if (hit) color = hr.f.color;
+    // return color;
 }
 
 void Tracer::traceImage() {
