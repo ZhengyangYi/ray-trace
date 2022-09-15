@@ -7,7 +7,7 @@ I implemented a raytracer to rendering the samples images to the new ppm file. T
 # The problem I encountered
 The first problem I encountered was that the screen was all black and nothing was displayed, and later I found out that it was because I forgot to return the value of the pixel point normal when doing the intersection of the triangles, and successfully solved it. The second problem is that there are some shadow calculation bugs, and there is a lot of noise on the screen. I guess it is because when checking whether there is a shadow, I set the t0 of the intersect function to 0, which makes the system unable to judge here. There is no shadow, so I set t0 to a small number but not equal to 0, and it successfully solved the problem. The last question is also about the shadow, the shadow at the bottom of the object is not showing, but unfortunately, I didn't have a chance to successfully solve this problem, I think this is a function that I need to fix in the future.
 
-<img width="400" alt="截屏2022-09-13 下午11 30 23" src="https://user-images.githubusercontent.com/69991827/190308096-c75df4d8-d90c-420f-aa94-241bf09bc5d2.png">
+
 <img width="400" alt="截屏2022-09-13 下午10 29 28" src="https://user-images.githubusercontent.com/69991827/190308252-e61374d5-8f39-4aca-a4f4-37a4ee1c1dea.png">
 
 # What I learned
