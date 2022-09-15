@@ -21,68 +21,69 @@ double det(const SlVector3 &a, const SlVector3 &b, const SlVector3 &c) {
 inline double sqr(double x) {return x*x;} 
 
 bool Triangle::intersect(const Ray &r, double t0, double t1, HitRecord &hr) const {
-        SlVector3 ba = a-b;
-    SlVector3 ca = a-c;
-    SlVector3 ea = a-r.e;
-    double detA = det(ba, ca, r.d);
-    double t = det(ba, ca, ea)/detA;
-    if (t < t0 || t > t1) return false;
-    double beta = det(ea, ca, r.d)/detA;
-    if (beta < 0 || beta > 1) return false;
-    double gamma = det(ba, ea, r.d)/detA;
-    if (gamma < 0.0 || gamma > 1.0-beta) return false;
-    hr.t = t;
-    hr.p = r.e + t * r.d;
-    hr.n = cross(ba,ca);
-    normalize(hr.n);
-    hr.alpha = 1.0 - beta - gamma;
-    hr.beta = beta;
-    hr.gamma = gamma;
-    return true;
+    //     SlVector3 ba = a-b;
+    // SlVector3 ca = a-c;
+    // SlVector3 ea = a-r.e;
+    // double detA = det(ba, ca, r.d);
+    // double t = det(ba, ca, ea)/detA;
+    // if (t < t0 || t > t1) return false;
+    // double beta = det(ea, ca, r.d)/detA;
+    // if (beta < 0 || beta > 1) return false;
+    // double gamma = det(ba, ea, r.d)/detA;
+    // if (gamma < 0.0 || gamma > 1.0-beta) return false;
+    // hr.t = t;
+    // hr.p = r.e + t * r.d;
+    // hr.n = cross(ba,ca);
+    // normalize(hr.n);
+    // hr.alpha = 1.0 - beta - gamma;
+    // hr.beta = beta;
+    // hr.gamma = gamma;
+    // return true;
 
     // Step 1 Ray-triangle test
 
     //Vertexs of traingle
-    // SlVector3 v0=a;
-    // SlVector3 v1=b;
-    // SlVector3 v2=c; 
-    // SlVector3 dir=r.d; //direction of light source
-    // SlVector3 orig=r.e;  //origin of light source
+    SlVector3 v0=a;
+    SlVector3 v1=b;
+    SlVector3 v2=c; 
+    SlVector3 dir=r.d; //direction of light source
+    SlVector3 orig=r.e;  //origin of light source
 
-    // SlVector3 E1=v1-v0;
-    // SlVector3 E2=v2-v0;
-    // SlVector3 P = cross(dir,E2);
-    // float det=dot(E1,P);
-    // SlVector3 T;
-    // if(det>0)
-    // {
-    //     T=orig-v0;
-    // }
-    // else if(det==0)
-    // {
-    //     return false;   //denomitor can not be zero
-    // }
-    // else
-    // {
-    //     T=v0-orig;
-    //     det=-det;
-    // }
-    // float invDet=1/det;
-    // float u=dot(T,P)*invDet;
-    // if(u < 0|| u>1)return false;
-    // SlVector3 Q=cross(T,E1);
-    // float v=dot(dir,Q)*invDet;
-    // if(v < 0|| (v+u)>1)return false;  //alpha beta gamma sum is 1, over 1 therefore no intersect
+    SlVector3 E1=v1-v0;
+    SlVector3 E2=v2-v0;
+    SlVector3 P = cross(dir,E2);
+    float det=dot(E1,P);
+    SlVector3 T;
+    if(det>0)
+    {
+        T=orig-v0;
+    }
+    else if(det==0)
+    {
+        return false;   //denomitor can not be zero
+    }
+    else
+    {
+        T=v0-orig;
+        det=-det;
+    }
+    float invDet=1/det;
+    float u=dot(T,P)*invDet;
+    if(u < 0.0|| u>1.0)return false;
+    SlVector3 Q=cross(T,E1);
+    float v=dot(dir,Q)*invDet;
+    if(v < 0.0|| (v+u)>1.0)return false;  //alpha beta gamma sum is 1, over 1 therefore no intersect
 
-    // float t=dot(E2,Q);
-    // hr.t=t;
-    // hr.p=r.e+t*r.d;
-    // hr.alpha=1.0-u-v;
-    // hr.beta=u;
-    // hr.gamma=v;
-
-
-    // return true;
+    float t=dot(E2,Q);
+    if (t < t0 || t > t1) return false;
+    hr.t=t;
+    hr.p=r.e+t*r.d;
+    hr.n = cross(E1,E2);
+    normalize(hr.n);
+    hr.alpha=1.0-u-v;
+    hr.beta=u;
+    hr.gamma=v;
+    return true;
 }
 
 bool TrianglePatch::intersect(const Ray &r, double t0, double t1, HitRecord &hr) const {
@@ -100,43 +101,35 @@ bool Sphere::intersect(const Ray &r, double t0, double t1, HitRecord &hr) const 
     // Step 1 Sphere-triangle test
     // double a=sqrMag(r.d);
     // double b=2*dot(r.d, r.e-c);
-    // double c = sqrMag(r.e-c)-sqr(rad);
+    // double c = sqrMag(r.e-c)-rad*rad;
 
-    // double delta = sqr(b) - (4*a*c);    
+    // double delta = b*b - (4*a*c);    
 
-    // double root1=(-b + sqrt(delta))/(2*a);
-    // double root2=(-b - sqrt(delta))/(2*a);
     // if(delta<0)
     // {
     //     return false;
     // }
+
+    // double root1=(-b + sqrt(delta))/(2*a);
+    // double root2=(-b - sqrt(delta))/(2*a);
     // double t=root1;
-    // if(delta > 0) 
-    // {
-    //     if (root1<root2)
-    //     {
-    //         t=root1;
-    //     }
-    //     else
-    //     {
-    //         t=root2;
-    //     }
-    // }
+    // if (root1 < 0 || (root2 > 0 && root2 < root1)) t = root2;
     // if(t<t0 || t>t1) return false;
 
     // hr.t=t;
     // hr.p=r.e+t*r.d;
     // hr.n=(hr.p-c)/rad;
-    // hr.v=-r.d;
     // return true;
+
+    
     double ddotemc = dot(r.d, r.e-c);
     double d2 = sqrMag(r.d);
 
-    double disc = sqr(ddotemc) - d2 * (sqrMag(r.e-c) - rad*rad);
+    double delta = sqr(ddotemc) - d2 * (sqrMag(r.e-c) - rad*rad);
 
-    if (disc < 0) return false;
-    double root1 = (-ddotemc + sqrt(disc)) / d2;
-    double root2 = (-ddotemc - sqrt(disc)) / d2;
+    if (delta < 0) return false;
+    double root1 = (-ddotemc + sqrt(delta)) / d2;
+    double root2 = (-ddotemc - sqrt(delta)) / d2;
 
     double t = root1;
     if (root1 < 0 || (root2 > 0 && root2 < root1)) t = root2;
